@@ -95,7 +95,8 @@ plt.show()
 ```
 
 ## Output:
-![alt text](<Screenshot 2025-09-03 011052.png>) ![alt text](<Screenshot 2025-09-03 011045.png>)
+![alt text](<Screenshot 2025-09-03 011045.png>)
+![alt text](<Screenshot 2025-09-03 011052.png>) 
 
 
 ## Result:
