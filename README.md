@@ -9,24 +9,31 @@ To write a program to predict car prices using Linear Regression and Polynomial 
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. Import Libraries:
-Import necessary libraries such as pandas, numpy, matplotlib, and sklearn.
-2. Load Dataset:
-Load the dataset containing car prices and relevant features.
-3. Data Preprocessing:
-Handle missing values and perform feature selection if necessary.
-4. Split Data:
-Split the dataset into training and testing sets.
-5. Train Model:
-Create a linear regression model and fit it to the training data.
-6. Make Predictions:
-Use the model to make predictions on the test set.
-7. Evaluate Model:
-Assess model performance using metrics like R² score, Mean Absolute Error (MAE), etc.
-8. Check Assumptions:
-Plot residuals to check for homoscedasticity, normality, and linearity.
-9. Output Results:
-Display the predictions and evaluation metrics.
+Data Collection:
+
+Import essential libraries like pandas, numpy, sklearn, matplotlib, and seaborn.
+Load the dataset using pandas.read_csv().
+
+Data Preprocessing:
+
+Address any missing values in the dataset.
+Select key features for training the models.
+Split the dataset into training and testing sets with train_test_split().
+Linear Regression:
+
+Initialize the Linear Regression model from sklearn.
+Train the model on the training data using .fit().
+Make predictions on the test data using .predict().
+Evaluate model performance with metrics such as Mean Squared Error (MSE) and the R² score.
+Polynomial Regression:
+
+Use PolynomialFeatures from sklearn to create polynomial features.
+Fit a Linear Regression model to the transformed polynomial features.
+Make predictions and evaluate performance similar to the linear regression model.
+Visualization:
+
+Plot the regression lines for both Linear and Polynomial models.
+Visualize residuals to assess model performance.
 
 ## Program:
 ```
@@ -37,76 +44,55 @@ RegisterNumber:  212222040109
 */
 
 import pandas as pd
-import numpy as np 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures,StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
-import seaborn as sns
-import statsmodels.api as sm
 import matplotlib.pyplot as plt
-df=pd.read_csv('CarPrice_Assignment.csv')
+df=pd.read_csv('encoded_car_data.csv')
+print(df.head())
 x=df[['enginesize','horsepower','citympg','highwaympg']]
 y=df['price']
 x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=42)
-scaler=StandardScaler()
-x_train_scaled=scaler.fit_transform(x_train)
-x_test_scaled=scaler.transform(x_test)
-model=LinearRegression()
-model.fit(x_train_scaled,y_train)
-y_pred=model.predict(x_test_scaled)
-print("="*50)
-print("MODEL COEFFICIENTS:")
-for feature, coef in zip(x.columns, model.coef_):
-    print(f"{feature:>12}: {coef:>10.2f}")
-print(f"{'Intercept':>12}:{model.intercept_:>10.2f}")
-print("="*50)
+lr=Pipeline([
+    ('scaler',StandardScaler()),
+    ('model',LinearRegression())
+])
+lr.fit(x_train,y_train)
+y_pred_linear=lr.predict(x_test)
+poly_model=Pipeline([
+    ('poly',PolynomialFeatures(degree=2)),
+    ('scaler',StandardScaler()),
+    ('model',LinearRegression())
+])
+poly_model.fit(x_train,y_train)
+y_pred_poly = poly_model.predict(x_test)
+# Evaluate models
+print("Linear Regression:")
+print(f"MSE: {mean_squared_error(y_test, y_pred_linear):.2f}")
+print(f"R^2: {r2_score(y_test, y_pred_linear):.2f}")
 
-print("\nMODEL PERFORMANCE:")
-mse=mean_squared_error(y_test, y_pred)
-print('Mean squared error=',mse)
-rmse=np.sqrt(mse)
-print('Root mean squared error=',rmse)
-r2score=r2_score(y_test, y_pred)
-print('R-squared=',r2score)
+print("\nPolynomial Regression:")
+print(f"MSE: {mean_squared_error(y_test, y_pred_poly):.2f}")
+print(f"R^2: {r2_score(y_test, y_pred_poly):.2f}")
 
-# 1. Linearity check
-plt.figure(figsize=(10,5))
-plt.scatter(y_test, y_pred, alpha=0.6)
-plt.plot([y.min(),y.max()],[y.min(),y.max()],'r--')
-plt.title("Linearity check: Actual vs Predicted prices")
-plt.xlabel("Actual Price($)")
-plt.ylabel("Predicted Price($)")
-plt.grid(True)
+# Plot actual vs predicted
+plt.figure(figsize=(10, 5))
+plt.scatter(y_test, y_pred_linear, label='Linear', alpha=0.6)
+plt.scatter(y_test, y_pred_poly, label='Polynomial (degree=2)', alpha=0.6)
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', label='Perfect Prediction')
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Linear vs Polynomial Regression")
+plt.legend()
 plt.show()
 
-# 2. Independence (Durbin-Watson)
-residuals=y_test-y_pred
-dw_test=sm.stats.durbin_watson(residuals)
-print(f"\nDurbin-Watson Statistic:{dw_test:.2f}","\n(Values close to 2 indicate no autocorrelation)")
-
-# 3. Homoscedasticity
-plt.figure(figsize=(10,5))
-sns.residplot(x=y_pred, y=residuals, lowess=True, line_kws={'color':'red'})
-plt.title("Homoscedasticity Check: Residuals vs Predicted")
-plt.xlabel("Predicted Price ($)")
-plt.ylabel("Residuals ($)")
-plt.grid(True)
-plt.show()
-
-# 4. Normality of residuals
-fig, (ax1,ax2)=plt.subplots(1,2,figsize=(12,5))
-sns.histplot(residuals, kde=True, ax=ax1)
-ax1.set_title("Residuals Distribution")
-sm.qqplot(residuals, line='45', fit=True, ax=ax2)
-ax2.set_title("Q-Q Plot")
-plt.tight_layout()
-plt.show()
 
 ```
 
 ## Output:
-![alt text](<1.png>) ![alt text](<2.png>) ![alt text](<3.png>)
+![alt text](<Screenshot 2025-09-03 011052.png>) ![alt text](<Screenshot 2025-09-03 011045.png>)
 
 
 ## Result:
